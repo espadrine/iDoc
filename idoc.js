@@ -1,8 +1,9 @@
-// Copyright (c) 2010 Thaddée Tyl. All rights reserved.
+// Copyright (c) 2010 Thaddee Tyl. All rights reserved.
 // iDoc is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software foundation, version 3.
 // iDoc is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 // You should have received a copy of the GNU General Public License along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+// 1. You have to learn to listen!
 chrome.extension.onRequest.addListener(
 	function( request, sender, sendResponse ) {
 		if(request.edit == true) {
@@ -74,6 +75,7 @@ chrome.extension.onRequest.addListener(
 			sendResponse({});
 	});
 
+// 2. Wiring things up inside the DOM forest.
 function insertNodeAtSelection(win, insertNode) {
   // get current selection
   var sel = win.getSelection();
@@ -93,23 +95,19 @@ function insertNodeAtSelection(win, insertNode) {
   var pos = range.startOffset;
 
   // make a new range for the new selection
-  range=document.createRange();
+  range = document.createRange();
 
-  if (container.nodeType==3 && insertNode.nodeType==3) {
-
+  if(container.nodeType==3 && insertNode.nodeType==3) {
 	// if we insert text in a textnode, do optimized insertion
 	container.insertData(pos, insertNode.nodeValue);
 
 	// put cursor after inserted text
 	range.setEnd(container, pos+insertNode.length);
 	range.setStart(container, pos+insertNode.length);
-
-  } else {
-
-
+  }
+  else {
 	var afterNode;
-	if (container.nodeType==3) {
-
+	if(container.nodeType==3) {
 	  // when inserting into a textnode
 	  // we create 2 new textnodes
 	  // and put the insertNode in between
@@ -133,9 +131,8 @@ function insertNodeAtSelection(win, insertNode) {
 
 	  // remove the old node
 	  container.removeChild(textNode);
-
-	} else {
-
+	}
+	else {
 	  // else simply insert the node
 	  afterNode = container.childNodes[pos];
 	  container.insertBefore(insertNode, afterNode);
@@ -146,5 +143,19 @@ function insertNodeAtSelection(win, insertNode) {
   }
 
   sel.addRange(range);
+}
+
+// 3. Do you want to lose your edition?
+window.onbeforeunload = function(e) {
+	if(document.designMode=='on') {
+		var asked = "Don't you want to save your edition on your computer "+
+			"before leaving?";
+		e.returnValue = asked;
+		// save it, just in case :)
+		localStorage['iDoc-'+document.URL] =
+				document.getElementsByTagName('html')[0].innerHTML;
+		return asked;
+	}
+	else return;
 }
 
