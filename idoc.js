@@ -1,4 +1,7 @@
-// (c) 2010 Thaddée Tyl. All rights reserved.
+// Copyright (c) 2010 Thaddée Tyl. All rights reserved.
+// iDoc is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software foundation, version 3.
+// iDoc is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+// You should have received a copy of the GNU General Public License along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 chrome.extension.onRequest.addListener(
 	function( request, sender, sendResponse ) {
