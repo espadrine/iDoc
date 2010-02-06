@@ -1,0 +1,281 @@
+<html>
+	<head>
+		<script type="text/javascript">
+	// 1. edit button.
+var editing = false;
+function change(obj) {
+	chrome.tabs.getSelected(null, function(tab) {
+		if( editing == false ) // begin editing session.
+			obj.textContent = "End";
+		else
+			obj.textContent = "Edit";
+		editing = !editing;
+		chrome.tabs.sendRequest(tab.id, {edit:editing}, function(response) {
+			if(!response.ok) console.log("iDoc communication error");
+		});
+	});
+}
+	// 2. controls.
+var command = "";
+
+var stdWidth = 400;
+var stdHeight;
+function InitToolbarButtons() {
+	var kids = document.getElementsByTagName('div');
+	
+	for (var i=0; i < kids.length; i++) {
+		if (kids[i].className == "imagebutton") {
+			kids[i].onmouseover = tbmouseover;
+			kids[i].onmouseout = tbmouseout;
+			kids[i].onmousedown = tbmousedown;
+			kids[i].onmouseup = tbmouseup;
+			kids[i].onclick = tbclick;
+			kids[i].style.border="solid 1px #ebeff9";
+		}
+	}
+	stdHeight = window.innerHeight;
+}
+
+function tbmousedown(e) {
+	var evt = e ? e : window.event; 
+	
+	this.firstChild.style.left = 1;
+	this.firstChild.style.top = 1;
+	this.style.border="inset 1px";
+	if (evt.returnValue) {
+		evt.returnValue = false;
+	} else if (evt.preventDefault) {
+		evt.preventDefault( );
+	} else {
+		return false;
+	}
+}
+
+function tbmouseup() {
+	this.firstChild.style.left = 1;
+	this.firstChild.style.top = 1;
+	this.style.border="outset 1px";
+}
+
+function tbmouseout() {
+	this.style.border="solid 1px #ebeff9";
+}
+
+function tbmouseover() {
+	this.style.border="outset 1px";
+}
+
+function getOffsetTop(elm) {
+	var mOffsetTop = elm.offsetTop;
+	var mOffsetParent = elm.offsetParent;
+	
+	while(mOffsetParent){
+		mOffsetTop += mOffsetParent.offsetTop;
+		mOffsetParent = mOffsetParent.offsetParent;
+	}
+	
+	return mOffsetTop;
+}
+
+function getOffsetLeft(elm) {
+	var mOffsetLeft = elm.offsetLeft;
+	var mOffsetParent = elm.offsetParent;
+	
+	while(mOffsetParent){
+		mOffsetLeft += mOffsetParent.offsetLeft;
+		mOffsetParent = mOffsetParent.offsetParent;
+	}
+	
+	return mOffsetLeft;
+}
+
+function tbclick() {
+	if(editing) {
+		var act = this.id;
+		if ((act == "forecolor") || (act == "hilitecolor")) {
+			parent.command = act;
+			buttonElement = document.getElementById(act);
+			var colorpalette = document.getElementById("colorpalette");
+			colorpalette.style.left = getOffsetLeft(buttonElement);
+			colorpalette.style.top = getOffsetTop(buttonElement) + buttonElement.offsetHeight;
+			colorpalette.style.height = "170px";
+			document.body.style.height = "255px";
+			colorpalette.style.display = "block";
+			colorpalette.style.visibility="visible";
+		}
+		else {
+			chrome.tabs.getSelected(null, function(tab) {
+				chrome.tabs.sendRequest(tab.id, {edit:"do",action:act},
+					function(response) {
+						if(!response.ok)console.log("iDoc communication error");
+					});
+			});
+		}
+	}
+	else
+		chrome.tabs.create({url:"./new.html"}, function(tab2) {
+			chrome.tabs.sendRequest(tab2.id, {edit:true}, function(r) {
+				if(!r.ok) console.log("iDoc communication error");
+			});
+		});
+}
+
+function Select(selectname) {
+	var cursel = document.getElementById(selectname).selectedIndex;
+	/* First one is always a label */
+	if (cursel != 0) {
+		var selected= document.getElementById(selectname).options[cursel].value;
+		chrome.tabs.getSelected(null, function(tab) {
+			chrome.tabs.sendRequest(tab.id, {edit:"do",action:selectname,
+					arg:selected}, function(response) {
+				if(!response.ok) console.log("iDoc communication error");
+				document.getElementById(selectname).selectedIndex = 0;
+			});
+		});
+	}
+}
+
+function dismisscolorpalette() {
+	var colorpalette = document.getElementById("colorpalette");
+	colorpalette.style.visibility = "hidden";
+	colorpalette.style.display = "none";
+}
+
+function init() {
+	chrome.tabs.getSelected(null, function(tab) {
+		chrome.tabs.sendRequest(tab.id, {edit:"ask"}, function(response) {
+			editing = response.ans;
+			document.getElementById('ed').textContent = editing?'End':'Edit';
+		});
+	});
+	InitToolbarButtons();
+	document.addEventListener("mousedown", dismisscolorpalette, true);
+}
+		</script>
+	</head>
+	<body onload="init();">
+		<style type="text/css">
+			body { width: 400px; margin:0px; padding:0px; }
+			table { width:100%; background-color: #ebeff9; }
+			table td { text-align: center; }
+		</style>
+<table id="toolbar1" width="100%">
+<tr>
+<td>
+		<button id="ed" onclick="change(this);"></button>
+</td>
+<td>
+<div class="imagebutton" id="cut"><img class="image" src="cut.png" alt="Cut" title="Cut"></div>
+</td>
+<td>
+<div class="imagebutton" id="copy"><img class="image" src="copy.png" alt="Copy" title="Copy"></div>
+</td>
+<td>
+<div class="imagebutton" id="paste"><img class="image" src="paste.png" alt="Paste" title="Paste"></div>
+</td>
+<td>
+<div class="imagebutton" id="undo"><img class="image" src="undo.png" alt="Undo" title="Undo"></div>
+</td>
+<td>
+<div class="imagebutton" id="redo"><img class="image" src="redo.png" alt="Redo" title="Redo"></div>
+</td>
+<td>
+<div style="left: 10;" class="imagebutton" id="createlink"><img class="image" src="link.png" alt="Insert Link" title="Insert Link"></div>
+</td>
+<td>
+<div style="left: 10;" class="imagebutton" id="insertimage"><img class="image" src="image.png" alt="Insert Image" title="Insert Image"></div>
+</td>
+<td>
+<div style="left: 10;" class="imagebutton" id="createtable"><img class="image" src="table.png" alt="Insert Table" title="Insert Table"></div>
+</td>
+</tr>
+</table>
+
+<table id="toolbar2" width="100%">
+<tr>
+<td>
+<select id="formatblock" onchange="Select(this.id);">
+  <option value="<p>">Normal</option>
+  <option value="<p>">Paragraph</option>
+  <option value="<h1>">Heading 1 <H1></option>
+  <option value="<h2>">Heading 2 <H2></option>
+
+  <option value="<h3>">Heading 3 <H3></option>
+  <option value="<h4>">Heading 4 <H4></option>
+  <option value="<h5>">Heading 5 <H5></option>
+  <option value="<h6>">Heading 6 <H6></option>
+  <option value="<address>">Address <ADDR></option>
+  <option value="<pre>">Formatted <PRE></option>
+
+</select>
+</td>
+<td>
+<select id="fontname" onchange="Select(this.id);">
+  <option value="Font">Font</option>
+  <option value="Arial">Arial</option>
+  <option value="Courier">Courier</option>
+  <option value="Times New Roman">Times New Roman</option>
+</select>
+</td>
+<td>
+<select unselectable="on" id="fontsize" onchange="Select(this.id);">
+  <option value="Size">Size</option>
+  <option value="1">1</option>
+  <option value="2">2</option>
+  <option value="3">3</option>
+  <option value="4">4</option>
+
+  <option value="5">5</option>
+  <option value="6">6</option>
+  <option value="7">7</option>  
+</select>
+</td>
+<td>
+<div class="imagebutton" id="bold"><img class="image" src="bold.png" alt="Bold" title="Bold"></div>
+</td>
+<td>
+<div class="imagebutton" id="italic"><img class="image" src="italic.png" alt="Italic" title="Italic"></div>
+</td>
+<td>
+<div class="imagebutton" id="underline"><img class="image" src="underline.png" alt="Underline" title="Underline"></div>
+</td>
+</tr>
+</table>
+
+<table id="toolbar3" width="100%">
+<tr>
+<td>
+<div style="left: 10;" class="imagebutton" id="forecolor"><img class="image" src="forecolor.png" alt="Text Color" title="Text Color"></div>
+</td>
+<td>
+<div style="left: 40;" class="imagebutton" id="hilitecolor"><img class="image" src="backcolor.png" alt="Background Color" title="Background Color"></div>
+</td>
+<td>
+<div style="left: 10;" class="imagebutton" id="justifyleft"><img class="image" src="textleft.png" alt="Align Left" title="Align Left"></div>
+</td>
+<td>
+<div style="left: 40;" class="imagebutton" id="justifycenter"><img class="image" src="textcenter.png" alt="Center" title="Center"></div>
+</td>
+<td>
+<div style="left: 70;" class="imagebutton" id="justifyright"><img class="image" src="textright.png" alt="Align Right" title="Align Right"></div>
+</td>
+<td>
+<div style="left: 70;" class="imagebutton" id="justifyfull"><img class="image" src="textjustify.png" alt="Justify" title="Justify"></div>
+</td>
+<td>
+<div style="left: 10;" class="imagebutton" id="insertorderedlist"><img class="image" src="orderedlist.png" alt="Ordered List" title="Ordered List"></div>
+</td>
+<td>
+<div style="left: 40;" class="imagebutton" id="insertunorderedlist"><img class="image" src="unorderedlist.png" alt="Unordered List" title="Unordered List"></div>
+</td>
+<td>
+<div style="left: 10;" class="imagebutton" id="outdent"><img class="image" src="outdent.png" alt="Outdent" title="Outdent"></div>
+</td>
+<td>
+<div style="left: 40;" class="imagebutton" id="indent"><img class="image" src="indent.png" alt="Indent" title="Indent"></div>
+</td>
+</tr>
+</table>
+<iframe width="250" height="0" id="colorpalette" src="colors.html" style="visibility:hidden; display: none; position: absolute;"></iframe>
+	</body>
+</html>
