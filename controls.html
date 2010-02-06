@@ -3,12 +3,14 @@
 		<script type="text/javascript">
 	// 1. edit button.
 var editing = false;
+var END_EDIT = "End";
+var BEGIN_EDIT = "Edit";
 function change(obj) {
 	chrome.tabs.getSelected(null, function(tab) {
 		if( editing == false ) // begin editing session.
-			obj.textContent = "End";
+			obj.textContent = END_EDIT;
 		else
-			obj.textContent = "Edit";
+			obj.textContent = BEGIN_EDIT;
 		editing = !editing;
 		chrome.tabs.sendRequest(tab.id, {edit:editing}, function(response) {
 			if(!response.ok) console.log("iDoc communication error");
@@ -18,8 +20,6 @@ function change(obj) {
 	// 2. controls.
 var command = "";
 
-var stdWidth = 400;
-var stdHeight;
 function InitToolbarButtons() {
 	var kids = document.getElementsByTagName('div');
 	
@@ -33,7 +33,6 @@ function InitToolbarButtons() {
 			kids[i].style.border="solid 1px #ebeff9";
 		}
 	}
-	stdHeight = window.innerHeight;
 }
 
 function tbmousedown(e) {
@@ -90,34 +89,35 @@ function getOffsetLeft(elm) {
 }
 
 function tbclick() {
-	if(editing) {
-		var act = this.id;
-		if ((act == "forecolor") || (act == "hilitecolor")) {
-			parent.command = act;
-			buttonElement = document.getElementById(act);
-			var colorpalette = document.getElementById("colorpalette");
-			colorpalette.style.left = getOffsetLeft(buttonElement);
-			colorpalette.style.top = getOffsetTop(buttonElement) + buttonElement.offsetHeight;
-			colorpalette.style.height = "170px";
-			document.body.style.height = "255px";
-			colorpalette.style.display = "block";
-			colorpalette.style.visibility="visible";
-		}
-		else {
-			chrome.tabs.getSelected(null, function(tab) {
-				chrome.tabs.sendRequest(tab.id, {edit:"do",action:act},
-					function(response) {
-						if(!response.ok)console.log("iDoc communication error");
-					});
-			});
-		}
+	if(!editing)
+		change(document.getElementById('ed'));
+	var act = this.id;
+	if ((act == "forecolor") || (act == "hilitecolor")) {
+		parent.command = act;
+		buttonElement = document.getElementById(act);
+		var colorpalette = document.getElementById("colorpalette");
+		colorpalette.style.left = getOffsetLeft(buttonElement);
+		colorpalette.style.top = getOffsetTop(buttonElement) + buttonElement.offsetHeight;
+		document.body.style.height = "255px";
+		colorpalette.style.display = "block";
+		colorpalette.style.visibility="visible";
 	}
-	else
-		chrome.tabs.create({url:"./new.html"}, function(tab2) {
-			chrome.tabs.sendRequest(tab2.id, {edit:true}, function(r) {
-				if(!r.ok) console.log("iDoc communication error");
-			});
+	else {
+		chrome.tabs.getSelected(null, function(tab) {
+			chrome.tabs.sendRequest(tab.id, {edit:"do",action:act},
+				function(response) {
+					if(!response.ok)console.log("iDoc communication error");
+				});
 		});
+	}
+}
+
+function newfile() {
+	chrome.tabs.create({url:"./new.html"}, function(tab2) {
+		chrome.tabs.sendRequest(tab2.id, {edit:true}, function(r) {
+			if(!r.ok) console.log("iDoc communication error");
+		});
+	});
 }
 
 function Select(selectname) {
@@ -145,7 +145,12 @@ function init() {
 	chrome.tabs.getSelected(null, function(tab) {
 		chrome.tabs.sendRequest(tab.id, {edit:"ask"}, function(response) {
 			editing = response.ans;
-			document.getElementById('ed').textContent = editing?'End':'Edit';
+			document.getElementById('ed').textContent =
+					editing? END_EDIT: BEGIN_EDIT;
+			document.getElementById('new').style.display = 'none';
+			var tables = document.getElementsByTagName('table');
+			for(var i=0; i<tables.length; i++)
+				tables[i].style.display = "block";
 		});
 	});
 	InitToolbarButtons();
@@ -156,9 +161,10 @@ function init() {
 	<body onload="init();">
 		<style type="text/css">
 			body { width: 400px; margin:0px; padding:0px; }
-			table { width:100%; background-color: #ebeff9; }
+			table { width:100%; background-color: #ebeff9; display: none; }
 			table td { text-align: center; }
 		</style>
+		<button id="new" onclick="newfile();" style="width:100%">New</button>
 <table id="toolbar1" width="100%">
 <tr>
 <td>
@@ -276,6 +282,6 @@ function init() {
 </td>
 </tr>
 </table>
-<iframe width="250" height="0" id="colorpalette" src="colors.html" style="visibility:hidden; display: none; position: absolute;"></iframe>
+<iframe width="250" height="170" id="colorpalette" src="colors.html" style="visibility:hidden; display: none; position: absolute;"></iframe>
 	</body>
 </html>
