@@ -146,7 +146,7 @@ function insertNodeAtSelection(win, insertNode) {
 }
 
 // 3. Do you want to lose your edition?
-var haveSaved = false;
+var haveSaved = true;
 window.onbeforeunload = function(e) {
 	if(document.designMode=='on' && !haveSaved) {
 		var asked = "Don't you want to save your edition on your computer "+
