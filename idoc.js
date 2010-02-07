@@ -146,8 +146,9 @@ function insertNodeAtSelection(win, insertNode) {
 }
 
 // 3. Do you want to lose your edition?
+var haveSaved = false;
 window.onbeforeunload = function(e) {
-	if(document.designMode=='on') {
+	if(document.designMode=='on' && !haveSaved) {
 		var asked = "Don't you want to save your edition on your computer "+
 			"before leaving?";
 		e.returnValue = asked;
@@ -157,5 +158,11 @@ window.onbeforeunload = function(e) {
 		return asked;
 	}
 	else return;
+}
+
+document.onkeydown = function(e) {
+	if(e.keyCode == 83 && (e.ctrlKey||e.metaKey)) // CTRL/Command+S
+		haveSaved = true;
+	else haveSaved = false;
 }
 
