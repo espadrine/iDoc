@@ -9,6 +9,7 @@ chrome.extension.onRequest.addListener(
 		if(request.edit == true) {
 			if(document.designMode) {
 				document.designMode = "on";
+				usecss(true);
 				sendResponse({ok:true});
 			}
 			else sendResponse({ok:false});
