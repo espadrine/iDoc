@@ -9,7 +9,6 @@ chrome.extension.onRequest.addListener(
 		if(request.edit == true) {
 			if(document.designMode) {
 				document.designMode = "on";
-				usecss(true);
 				sendResponse({ok:true});
 			}
 			else sendResponse({ok:false});
@@ -17,7 +16,8 @@ chrome.extension.onRequest.addListener(
 		else if(request.edit == false) {
 			if(document.designMode) {
 				document.designMode = "off";
-				sendResponse({ok:true});
+				sendResponse({ok:true, save:document.URL.substring(7),
+				 content: document.getElementsByTagName('html')[0].innerHTML});
 			}
 			else sendResponse({ok:false});
 		}
@@ -78,25 +78,20 @@ chrome.extension.onRequest.addListener(
 
 // 2. Wiring things up inside the DOM forest.
 function insertNodeAtSelection(win, insertNode) {
-  // get current selection
-  var sel = win.getSelection();
+  var sel = win.getSelection(); // get current selection
 
   // get the first range of the selection
   // (there's almost always only one range)
   var range = sel.getRangeAt(0);
 
-  // deselect everything
-  sel.removeAllRanges();
+  sel.removeAllRanges(); // deselect everything
 
-  // remove content of current selection from document
-  range.deleteContents();
+  range.deleteContents();  // remove content of current selection from document
 
-  // get location of current selection
-  var container = range.startContainer;
+  var container = range.startContainer;  // get location of current selection
   var pos = range.startOffset;
 
-  // make a new range for the new selection
-  range = document.createRange();
+  range = document.createRange();  // make a new range for the new selection
 
   if(container.nodeType==3 && insertNode.nodeType==3) {
 	// if we insert text in a textnode, do optimized insertion
@@ -117,10 +112,8 @@ function insertNodeAtSelection(win, insertNode) {
 	  container = textNode.parentNode;
 	  var text = textNode.nodeValue;
 
-	  // text before the split
-	  var textBefore = text.substr(0,pos);
-	  // text after the split
-	  var textAfter = text.substr(pos);
+	  var textBefore = text.substr(0,pos);	  // text before the split
+	  var textAfter = text.substr(pos);	  // text after the split
 
 	  var beforeNode = document.createTextNode(textBefore);
 	  afterNode = document.createTextNode(textAfter);
@@ -130,8 +123,7 @@ function insertNodeAtSelection(win, insertNode) {
 	  container.insertBefore(insertNode, afterNode);
 	  container.insertBefore(beforeNode, insertNode);
 
-	  // remove the old node
-	  container.removeChild(textNode);
+	  container.removeChild(textNode);	  // remove the old node
 	}
 	else {
 	  // else simply insert the node
@@ -152,10 +144,14 @@ window.onbeforeunload = function(e) {
 	if(document.designMode=='on' && !haveSaved) {
 		var asked = "Don't you want to save your edition on your computer "+
 			"before leaving?";
-		e.returnValue = asked;
 		// save it, just in case :)
-		localStorage['iDoc-'+document.URL] =
-				document.getElementsByTagName('html')[0].innerHTML;
+		var titled = document.URL.substring(5);
+		if( titled.lastStringOf('/') == titled.length-1 )
+			titled = titled.substring(-1);
+		chrome.extension.sendRequest({save: document.URL.substring(5),
+				content: document.getElementsByTagName('html')[0].innerHTML},
+				function(resp){});
+		e.returnValue = asked;
 		return asked;
 	}
 	else return;

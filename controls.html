@@ -3,7 +3,7 @@
 		<script>
 	// 1. edit button.
 var editing = false;
-var END_EDIT = "End";
+var END_EDIT = "Save";
 var BEGIN_EDIT = "Edit";
 function change(obj) {
 	chrome.tabs.getSelected(null, function(tab) {
@@ -14,6 +14,8 @@ function change(obj) {
 		editing = !editing;
 		chrome.tabs.sendRequest(tab.id, {edit:editing}, function(response) {
 			if(!response.ok) console.log("iDoc communication error");
+			if(response.save)
+				localStorage['iDoc-'+response.save] = response.content;
 		});
 	});
 }
@@ -153,6 +155,13 @@ function init() {
 				tables[i].style.display = "block";
 		});
 	});
+	chrome.extension.onRequest.addListener(
+		function(request, sender, sendResponse) {
+			if(request.save) // It comes from the content script.
+				localStorage['iDoc-'+request.save] = request.content;
+			sendResponse({});
+		}
+	);
 	InitToolbarButtons();
 	document.addEventListener("mousedown", dismisscolorpalette, true);
 }

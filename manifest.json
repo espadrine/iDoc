@@ -11,6 +11,7 @@
 		"default_title": "Begin editing",
 		"popup": "controls.html"
 	},
+	"options_page": "options.html",
 	"permissions": ["tabs"],
 	"content_scripts": [
 		{

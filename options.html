@@ -1,0 +1,171 @@
+<html>
+	<title>iDoc</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<style>
+html {
+	font-family: sans-serif;
+}
+div#filesystem {
+	position: absolute;
+	width: 33%;
+	height: 75%;
+	overflow: auto;
+	background-color: #eee;
+	color: #aaa;
+	border-radius: 5px;
+	padding: 10px;
+}
+h1 {
+	font-family: monospace;
+	font-weight: bold;
+	margin-left: 10%;
+	margin-bottom: 10px;
+	font-size: xx-large;
+}
+h2 {
+	font-size: 1.1em;
+	font-weight: bold;
+	font-style: italic;
+	font-family: fantasy;
+	margin-left: 30px;
+}
+a.name, a.name:visited {
+	-webkit-transition: text-shadow 0.5s ease-out;
+	color: #444;
+	text-decoration: none;
+}
+a.name:hover {
+	text-shadow: 0px 0px 4px #409;
+}
+a.folder, a.folder:visited {
+	-webkit-transition: text-shadow 0.5s ease-out;
+	color: #777;
+	text-decoration: none;
+}
+a.folder:hover {
+	text-shadow: 0px 0px 4px #904;
+}
+	</style>
+	<body onload="init()">
+	<script>
+function newFile() {
+	var fileName = prompt("Name of the file:"); // ask name.
+	if(fileName!='')
+		localStorage['iDoc-'+fileName] = ''; // store file info.
+	showFile(fileName, -1);
+}
+function showFile(f, place) {
+	var fsTable = document.getElementById("fs");
+	var fRow = fsTable.insertRow(place);
+	// update ui.
+	fRow.id = 'file'+f;
+	fRow.innerHTML = fileInRow(f);
+}
+function rmFile(file) {
+	localStorage.removeItem('iDoc-'+file);
+	var i = document.getElementById("file"+file).sectionRowIndex;
+	hideFile(i);
+}
+function hideFile(place) {
+	document.getElementById("fs").deleteRow(place);
+}
+function openFolder(name, caller) {
+	var ls = localStorage;
+	var iTbl = document.getElementById('fold'+name).sectionRowIndex;
+	for(var i=0; i<ls.length; i++) { // parse through storage data.
+		var f = ls.key(i);
+		if(f.substring(0,5) == 'iDoc-') f = f.substring(5);
+		else continue;
+		// We want those that are named name.
+		var folderName = f.slice(0,f.indexOf('/')+1);
+		if(folderName == name) {
+			// name.
+			var nextName = f.slice(f.indexOf('/'));
+			nextName = nextName.slice(0,nextName.indexOf('/')+1);
+			// index in table.
+			iTbl++;
+			// show it.
+			showFile(f, iTbl);
+		}
+	}
+	caller.parentNode.previousSibling.textContent = 'v';
+	caller.setAttribute('onclick', "closeFolder('"+name+"', this)");
+}
+function closeFolder(name, caller) {
+	var row = caller.parentNode.parentNode.nextSibling;
+	var rowName = row.firstChild.nextSibling.textContent;
+	while(rowName.slice(0,rowName.indexOf('/')+1) == name) {
+		var i = row.sectionRowIndex;
+		row = row.nextSibling;
+		rowName = row.firstChild.nextSibling.textContent;
+		hideFile(i);
+	}
+	caller.parentNode.previousSibling.textContent = '>';
+	caller.setAttribute('onclick', "openFolder('"+name+"', this)");
+}
+
+function fileRow(fileName) {
+	return '<tr id="file'+fileName+'">'+fileInRow(fileName);
+}
+function fileInRow(fileName) {
+	return '<td><a href="javascript:void(0)" '+
+			'class="folder" onclick="rmFile(\''+fileName+'\')">x</a>'+
+			'<td><a href="javascript:void(0)" class="name">'+fileName+'</a>';
+}
+function folderRow(folderName) {
+	return '<tr id="fold'+folderName+'"><td>&gt;'+
+			'<td><a href="javascript:void(0)" class="folder" '+
+			'onclick="openFolder(\''+folderName+'\', this)">'+
+			folderName+'</a>';
+}
+
+
+function init() {
+	var folders = [];
+	var inTable = '<tr><td colspan=3>\n<a class="folder" '+
+				'href="javascript:void(0)" onclick="newFile()">New File</a>';
+	var uiFs = document.getElementById('fs');
+	// Show a table of current files.
+	if(localStorage.length > 0) {
+		var ls = localStorage;
+		// First show folders.
+		for(var i=0; i<ls.length; i++) {
+			var f = ls.key(i);
+			if(f.substring(0,5) == 'iDoc-') f = f.substring(5);
+			else continue;
+			if(f.indexOf('/')!=-1) {
+				// We have a folder here.
+				// find name of folder.
+				var folderName = '';
+				if(f.indexOf('/')) folderName = f.substring(0,f.indexOf('/')+1);
+				else folderName = f.substring(0,f.indexOf('\\')+1);
+				// is this folder already listed?
+				var folderAlreadyListed = false; // ...java-lengthed variable ;)
+				for(var j=0; i<folders.length; i++)
+					if(folders[j] == folderName)
+						folderAlreadyListed = true;
+				if(!folderAlreadyListed) { // show the folder.
+					folders.push(folderName);
+					inTable += folderRow(folderName);
+				}
+			}
+		}
+		// Then show files in the master directory.
+		for(var i=0; i<ls.length; i++) {
+			var f = ls.key(i);
+			if(f.substring(0,5) == 'iDoc-') f = f.substring(5);
+			else continue;
+			if(f.indexOf('/')==-1) // We have a file here.
+				inTable += fileRow(f);
+		}
+	}
+	uiFs.innerHTML = inTable;
+}
+	</script>
+	<h1>iDoc</h1>
+	<div id="filesystem">
+		<h2>File System</h2>
+		<table id="fs"></table>
+	</div>
+	</body>
+</html>
