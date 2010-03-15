@@ -97,8 +97,10 @@ function closeFolder(name, caller) {
 	while(rowName.slice(0,rowName.indexOf('/')+1) == name) {
 		var i = row.sectionRowIndex;
 		row = row.nextSibling;
-		rowName = row.firstChild.nextSibling.textContent;
 		hideFile(i);
+		if(row)
+			rowName = row.firstChild.nextSibling.textContent;
+		else break;
 	}
 	caller.parentNode.previousSibling.textContent = '>';
 	caller.setAttribute('onclick', "openFolder('"+name+"', this)");
