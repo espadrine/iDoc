@@ -50,6 +50,10 @@ h2 {
 	font-family: cursive;
 	margin-left: 30px;
 }
+div.hr {
+	height: 7px;
+	border-bottom: solid 1px #d2dbed;
+}
 a.name, a.name:visited {
 	-webkit-transition: text-shadow 0.5s ease-out;
 	color: #444;
@@ -73,7 +77,27 @@ function newFile() {
 	var fileName = prompt("Name of the file:"); // ask name.
 	if(fileName!='')
 		localStorage['iDoc-'+fileName] = ''; // store file info.
-	showFile(fileName, -1);
+	// is it a file or a folder?
+	if(fileName.indexOf('/') == -1)
+		showFile(fileName, document.getElementById('fsHr').sectionRowIndex+1);
+	else {
+		var folder = fileName.slice(0,fileName.indexOf('/')+1);
+		// we need to see whether the folder already exists.
+		var exists = false;
+		var rows = document.getElementById('fs').rows;
+		for(var i=0; i<rows.length; i++) {
+			if(rows[i].getAttribute('id') == 'fold'+folder) {
+				exists = true;
+				// is the folder open visually?
+				if(rows[i].firstChild.textContent[0] != '>') {
+					showFile(fileName, i+1);
+				}
+				break;
+			}
+		}
+		// new folder!
+		if( !exists )  showFolder(folder, 0);
+	}
 }
 function showFile(f, place) {
 	var fsTable = document.getElementById("fs");
@@ -82,10 +106,32 @@ function showFile(f, place) {
 	fRow.id = 'file'+f;
 	fRow.innerHTML = fileInRow(f);
 }
+function showFolder(f, place) {
+	var fsTable = document.getElementById("fs");
+	var fRow = fsTable.insertRow(place);
+	// update ui.
+	fRow.id = 'fold'+f;
+	fRow.innerHTML = folderInRow(f);
+}
 function rmFile(file) {
-	localStorage.removeItem('iDoc-'+file);
-	var i = document.getElementById("file"+file).sectionRowIndex;
-	hideFile(i);
+	var ls = localStorage;
+	ls.removeItem('iDoc-'+file);
+	var id = document.getElementById("file"+file).sectionRowIndex;
+	hideFile(id);
+	// What if it is the last file of the folder?
+	var folder = file.slice(0,file.indexOf('/')+1);
+	var stillSome = false;
+	for(var i=0; i<ls.length; i++) { // parse through storage data.
+		var f = ls.key(i);
+		if(f.substring(0,5) == 'iDoc-') f = f.substring(5);
+		else continue;
+		// We want those that have the same folder as the removed file.
+		var folderName = f.slice(0,f.indexOf('/')+1);
+		if(folderName == folder)
+			stillSome = true;
+	}
+	if( !stillSome )  // if there is no more file in the folder...
+		hideFile(id-1);  // ... remove the folder in the ui.
 }
 function hideFile(place) {
 	document.getElementById("fs").deleteRow(place);
@@ -119,13 +165,15 @@ function openFolder(name, caller) {
 	caller.setAttribute('onclick', "closeFolder('"+name+"', this)");
 }
 function closeFolder(name, caller) {
+	var table = document.getElementById('fs');
 	var row = caller.parentNode.parentNode.nextSibling;
+	var rowId = row.sectionRowIndex;
 	var rowName = row.firstChild.nextSibling.nextSibling.textContent;
 	while(rowName.slice(0,rowName.indexOf('/')+1) == name) {
-		var i = row.sectionRowIndex;
-		row = row.nextSibling;
-		hideFile(i);
-		if(row && row.firstChild.nexSibling)
+		hideFile(rowId);  // deletes the row (next row = same id).
+		row = table.rows[rowId];
+		if(row && row.firstChild.nextSibling
+		   && row.firstChild.nextSibling.nextSibling)
 			rowName = row.firstChild.nextSibling.nextSibling.textContent;
 		else break;
 	}
@@ -143,7 +191,10 @@ function fileInRow(fileName) {
 			'onmouseover="preview(\''+fileName+'\')">'+fileName+'</a>';
 }
 function folderRow(folderName) {
-	return '<tr id="fold'+folderName+'"><td class="small">&gt;'+
+	return '<tr id="fold'+folderName+'">'+folderInRow(folderName);
+}
+function folderInRow(folderName) {
+	return '<td class="small">&gt;'+
 			'<td colspan=2><a href="javascript:void(0)" class="folder" '+
 			'onclick="openFolder(\''+folderName+'\', this)">'+
 			folderName+'</a>';
@@ -172,7 +223,7 @@ function init() {
 				else folderName = f.substring(0,f.indexOf('\\')+1);
 				// is this folder already listed?
 				var folderAlreadyListed = false; // ...java-lengthed variable ;)
-				for(var j=0; i<folders.length; i++)
+				for(var j=0; j<folders.length; j++)
 					if(folders[j] == folderName)
 						folderAlreadyListed = true;
 				if(!folderAlreadyListed) { // show the folder.
@@ -182,7 +233,7 @@ function init() {
 			}
 		}
 		// Then show files in the master directory.
-		inTable += '<tr><td colspan=3><hr>';
+		inTable += '<tr id="fsHr"><td colspan=3><div class=hr></div>';
 		for(var i=0; i<ls.length; i++) {
 			var f = ls.key(i);
 			if(f.substring(0,5) == 'iDoc-') f = f.substring(5);
