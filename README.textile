@@ -8,6 +8,6 @@ p. This tool will truly change the way you think about rich text. The future of 
 
 h1. Foss
 
-p. The reason I created this repo is to make the extension free and open source.Everything here is under the GPL (http://www.gnu.org/licenses/gpl.txt). You can therefore read the complete source code to rest assured that it is outstanding, and modify its rough edges on your computer or on your personal internet space. You will then be able to ask me to pull from you at thaddee dot tyl at gmail dot com, and you will most likely be "special thanked".
+p. The reason I created this repo is to make the extension free and open source. Everything here is under the GPL (http://www.gnu.org/licenses/gpl.txt). You can therefore read the complete source code to rest assured that it is outstanding, and modify its rough edges on your computer or on your personal internet space. You will then be able to ask me to pull from you at thaddee dot tyl at gmail dot com, and you will most likely be "special thanked".
 
 p. If, from your amazing mind, pops up a brilliant idea, don't be shy, tell me as a comment on the extension page! If you want to implement it, please do so! But I'd still like to see it in the comments on the extension page, if you don't mind. I enjoy your comments.
