@@ -145,10 +145,7 @@ window.onbeforeunload = function(e) {
 		var asked = "Don't you want to save your edition on your computer "+
 			"before leaving?";
 		// save it, just in case :)
-		var titled = document.URL.substring(5);
-		if( titled.lastStringOf('/') == titled.length-1 )
-			titled = titled.substring(-1);
-		chrome.extension.sendRequest({save: document.URL.substring(5),
+		chrome.extension.sendRequest({save: document.URL.substring(7),
 				content: document.getElementsByTagName('html')[0].innerHTML},
 				function(resp){});
 		e.returnValue = asked;

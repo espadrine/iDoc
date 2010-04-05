@@ -5,15 +5,36 @@
 html {
 	font-family: sans-serif;
 }
-div#filesystem {
+div#filesystem, div#preview {
 	position: absolute;
-	width: 33%;
-	height: 75%;
-	overflow: auto;
-	background-color: #eee;
+	background-color: #f3f7fc;
 	color: #aaa;
-	border-radius: 5px;
+	border: #d2dbed 1px solid;
+	border-radius: 3px;
 	padding: 10px;
+}
+div#filesystem {
+	width: 33%;
+	height: 85%;
+	left: 2%;
+	overflow: auto;
+}
+div#filesystem table {
+	width: 100%;
+	color: #444;
+}
+div#filesystem table td.small {
+	width: 10px;
+}
+div#preview {
+	width: 55%;
+	right: 2%;
+	height: 85%;
+}
+div#preview iframe {
+	width: 99%;
+	height: 89%;
+	border: dashed 1px #d2dbed;
 }
 h1 {
 	font-family: monospace;
@@ -26,7 +47,7 @@ h2 {
 	font-size: 1.1em;
 	font-weight: bold;
 	font-style: italic;
-	font-family: fantasy;
+	font-family: cursive;
 	margin-left: 30px;
 }
 a.name, a.name:visited {
@@ -69,6 +90,12 @@ function rmFile(file) {
 function hideFile(place) {
 	document.getElementById("fs").deleteRow(place);
 }
+function preview(file) {
+	var prev = document.getElementById('ifpreview').contentDocument;
+	prev.open();
+	prev.write('<!DOCTYPE html>\n<html>'+localStorage['iDoc-'+file]+'</html>');
+	prev.close();
+}
 function openFolder(name, caller) {
 	var ls = localStorage;
 	var iTbl = document.getElementById('fold'+name).sectionRowIndex;
@@ -93,13 +120,13 @@ function openFolder(name, caller) {
 }
 function closeFolder(name, caller) {
 	var row = caller.parentNode.parentNode.nextSibling;
-	var rowName = row.firstChild.nextSibling.textContent;
+	var rowName = row.firstChild.nextSibling.nextSibling.textContent;
 	while(rowName.slice(0,rowName.indexOf('/')+1) == name) {
 		var i = row.sectionRowIndex;
 		row = row.nextSibling;
 		hideFile(i);
-		if(row)
-			rowName = row.firstChild.nextSibling.textContent;
+		if(row && row.firstChild.nexSibling)
+			rowName = row.firstChild.nextSibling.nextSibling.textContent;
 		else break;
 	}
 	caller.parentNode.previousSibling.textContent = '>';
@@ -110,13 +137,14 @@ function fileRow(fileName) {
 	return '<tr id="file'+fileName+'">'+fileInRow(fileName);
 }
 function fileInRow(fileName) {
-	return '<td><a href="javascript:void(0)" '+
+	return '<td><td class="small"><a href="javascript:void(0)" '+
 			'class="folder" onclick="rmFile(\''+fileName+'\')">x</a>'+
-			'<td><a href="javascript:void(0)" class="name">'+fileName+'</a>';
+			'<td><a href="javascript:void(0)" class="name" '+
+			'onmouseover="preview(\''+fileName+'\')">'+fileName+'</a>';
 }
 function folderRow(folderName) {
-	return '<tr id="fold'+folderName+'"><td>&gt;'+
-			'<td><a href="javascript:void(0)" class="folder" '+
+	return '<tr id="fold'+folderName+'"><td class="small">&gt;'+
+			'<td colspan=2><a href="javascript:void(0)" class="folder" '+
 			'onclick="openFolder(\''+folderName+'\', this)">'+
 			folderName+'</a>';
 }
@@ -124,8 +152,9 @@ function folderRow(folderName) {
 
 function init() {
 	var folders = [];
-	var inTable = '<tr><td colspan=3>\n<a class="folder" '+
-				'href="javascript:void(0)" onclick="newFile()">New File</a>';
+	var inTable = '';
+	//var inTable = '<tr><td colspan=3>\n<a class="folder" '+
+	//			'href="javascript:void(0)" onclick="newFile()">New File</a>';
 	var uiFs = document.getElementById('fs');
 	// Show a table of current files.
 	if(localStorage.length > 0) {
@@ -153,6 +182,7 @@ function init() {
 			}
 		}
 		// Then show files in the master directory.
+		inTable += '<tr><td colspan=3><hr>';
 		for(var i=0; i<ls.length; i++) {
 			var f = ls.key(i);
 			if(f.substring(0,5) == 'iDoc-') f = f.substring(5);
@@ -166,8 +196,13 @@ function init() {
 	</script>
 	<h1>iDoc</h1>
 	<div id="filesystem">
-		<h2>File System</h2>
+		<h2>Drafts File System</h2>
+		<button onclick="newFile()">New File</button>
 		<table id="fs"></table>
+	</div>
+	<div id="preview">
+		<h2>Preview</h2>
+		<iframe id="ifpreview"></iframe>
 	</div>
 	</body>
 </html>
