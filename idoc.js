@@ -3,11 +3,24 @@
 // iDoc is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 // You should have received a copy of the GNU General Public License along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+var name = '';
+if(document.location.protocol == 'http:')
+	name = document.URL.substring(7);
+else if(document.location.protocol == 'file:')
+	name = document.URL.substring(8);
+
 // 1. You have to learn to listen!
 chrome.extension.onRequest.addListener(
 	function( request, sender, sendResponse ) {
 		if(request.edit == true) {
 			if(document.designMode) {
+				if(request.replace) {
+					document.open();
+					document.write('<!DOCTYPE html>\n<html>'
+								   +request.replace+'</html>');
+					document.close();
+					name = request.name;
+				}
 				document.designMode = "on";
 				sendResponse({ok:true});
 			}
@@ -16,7 +29,7 @@ chrome.extension.onRequest.addListener(
 		else if(request.edit == false) {
 			if(document.designMode) {
 				document.designMode = "off";
-				sendResponse({ok:true, save:document.URL.substring(7),
+				sendResponse({ok:true, save:name,
 				 content: document.getElementsByTagName('html')[0].innerHTML});
 			}
 			else sendResponse({ok:false});
