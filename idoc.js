@@ -20,6 +20,7 @@ chrome.extension.onRequest.addListener(
 								   +request.replace+'</html>');
 					document.close();
 					name = request.name;
+					document.title = name;
 				}
 				document.designMode = "on";
 				sendResponse({ok:true});
