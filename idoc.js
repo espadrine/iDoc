@@ -38,11 +38,6 @@ chrome.extension.onRequest.addListener(
 			sendResponse({ok:true, save:name,
 			 content: document.getElementsByTagName('html')[0].innerHTML});
 		}
-		else if(request.edit == "ask") {
-			if(document.designMode == "on")
-				sendResponse({ans:true});
-			else sendResponse({ans:false});
-		}
 		else if(request.edit == "do") {
 			if (request.action == "createlink") {
 				var szURL = prompt("Enter a URL:", "http://");
