@@ -1,6 +1,6 @@
 {
 	"name": "iDoc",
-	"version": "0.987",
+	"version": "0.989",
 	"description": "The Internet In-Page Editor. Edit any web page freely and save them.",
 	"icons": {
 		"48": "pen48.png",

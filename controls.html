@@ -1,9 +1,9 @@
 <html>
 	<head>
 		<script>
-	// 1. edit button.
+	// 1. edit & draft button.
 var editing = false;
-var END_EDIT = "Draft";
+var END_EDIT = "End";
 var BEGIN_EDIT = "Edit";
 function change(obj) {
 	chrome.tabs.getSelected(null, function(tab) {
@@ -19,6 +19,16 @@ function change(obj) {
 		});
 	});
 }
+function draft() {
+	chrome.tabs.getSelected(null, function(tab) {
+		chrome.tabs.sendRequest(tab.id, {edit:'draft'}, function(response) {
+			if(!response.ok) console.log("iDoc communication error");
+			if(response.save)
+				localStorage['iDoc-'+response.save] = response.content;
+		});
+	});
+}
+	
 	// 2. controls.
 var command = "";
 
@@ -210,18 +220,20 @@ function init() {
 <table id="toolbar2" width="100%">
 <tr>
 <td>
+	<button id="draft" onclick="draft();">Draft</button>
+</td>
+<td>
 <select id="formatblock" onchange="Select(this.id);">
   <option value="<p>">Normal</option>
   <option value="<p>">Paragraph</option>
-  <option value="<h1>">Heading 1 <H1></option>
-  <option value="<h2>">Heading 2 <H2></option>
-
-  <option value="<h3>">Heading 3 <H3></option>
-  <option value="<h4>">Heading 4 <H4></option>
-  <option value="<h5>">Heading 5 <H5></option>
-  <option value="<h6>">Heading 6 <H6></option>
-  <option value="<address>">Address <ADDR></option>
-  <option value="<pre>">Formatted <PRE></option>
+  <option value="<h1>">Heading 1<H1></option>
+  <option value="<h2>">Heading 2<H2></option>
+  <option value="<h3>">Heading 3<H3></option>
+  <option value="<h4>">Heading 4<H4></option>
+  <option value="<h5>">Heading 5<H5></option>
+  <option value="<h6>">Heading 6<H6></option>
+  <option value="<address>">Address<ADDR></option>
+  <option value="<pre>">Formatted<PRE></option>
 
 </select>
 </td>
@@ -230,7 +242,7 @@ function init() {
   <option value="Font">Font</option>
   <option value="Arial">Arial</option>
   <option value="Courier">Courier</option>
-  <option value="Times New Roman">Times New Roman</option>
+  <option value="Times New Roman">Times</option>
 </select>
 </td>
 <td>

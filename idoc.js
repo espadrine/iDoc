@@ -34,6 +34,10 @@ chrome.extension.onRequest.addListener(
 			}
 			else sendResponse({ok:false});
 		}
+		else if(request.edit == 'draft') {
+			sendResponse({ok:true, save:name,
+			 content: document.getElementsByTagName('html')[0].innerHTML});
+		}
 		else if(request.edit == "ask") {
 			if(document.designMode == "on")
 				sendResponse({ans:true});
