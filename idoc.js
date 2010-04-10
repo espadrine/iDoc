@@ -27,6 +27,7 @@ chrome.extension.onRequest.addListener(
 				else if(request.askName) {
 					name = prompt("Name of the file:"); // ask name.
 					if(!name) name = 'ThisIsNotAName'; // frivolous name!
+					document.title = name;
 				}
 				document.designMode = "on";
 				sendResponse({ok:true});
