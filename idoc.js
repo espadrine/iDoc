@@ -42,6 +42,7 @@ chrome.extension.onRequest.addListener(
 			else sendResponse({ok:false});
 		}
 		else if(request.edit == 'draft') {
+			haveSaved = true;
 			sendResponse({ok:true, save:name,
 			 content: document.getElementsByTagName('html')[0].innerHTML});
 		}
@@ -170,7 +171,6 @@ window.onbeforeunload = function(e) {
 		e.returnValue = asked;
 		return asked;
 	}
-	else return;
 }
 
 document.onkeydown = function(e) {
