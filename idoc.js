@@ -42,6 +42,10 @@ chrome.extension.onRequest.addListener(
 			}
 			else sendResponse({ok:false});
 		}
+		else if(request.edit == "ask") {
+			if(document.designMode == "on") sendResponse({editing:true});
+			else sendResponse({editing:false});
+		}
 		else if(request.edit == 'draft') {
 			haveSaved = true;
 			sendResponse({ok:true, save:name,

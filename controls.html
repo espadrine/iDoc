@@ -2,7 +2,7 @@
 	<head>
 		<script>
 	// 1. edit & draft button.
-var editing = true;
+var editing = false;
 var END_EDIT = "End";
 var BEGIN_EDIT = "Edit";
 function change(obj) {
@@ -157,8 +157,10 @@ function dismisscolorpalette() {
 
 function init() {
 	chrome.tabs.getSelected(null, function(tab) {
-		chrome.tabs.sendRequest(tab.id, {edit:true}, function(response) {
-			document.getElementById('ed').textContent = END_EDIT; // edit on.
+		chrome.tabs.sendRequest(tab.id, {edit:"ask"}, function(response) {
+			editing = response.editing;
+			document.getElementById('ed').textContent = editing?
+					END_EDIT: BEGIN_EDIT; // edit on.
 			document.getElementById('new').style.display = 'none';
 			var tables = document.getElementsByTagName('table');
 			for(var i=0; i<tables.length; i++)
