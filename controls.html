@@ -125,15 +125,6 @@ function tbclick() {
 	}
 }
 
-function newfile() {
-	chrome.tabs.create({url:"./new.html"}, function(tab2) {
-		chrome.tabs.sendRequest(tab2.id, {edit:true,askName:true}, function(r) {
-			if(!r.ok) console.log("iDoc communication error");
-			localStorage['iDoc-'+r.name] = ' ';
-		});
-	});
-}
-
 function Select(selectname) {
 	var cursel = document.getElementById(selectname).selectedIndex;
 	/* First one is always a label */
@@ -153,6 +144,15 @@ function dismisscolorpalette() {
 	var colorpalette = document.getElementById("colorpalette");
 	colorpalette.style.visibility = "hidden";
 	colorpalette.style.display = "none";
+}
+
+function newfile() {
+	chrome.tabs.create({url:"./new.html"}, function(tab2) {
+		chrome.tabs.sendRequest(tab2.id, {edit:true,askName:true}, function(r) {
+			if(!r.ok) console.log("iDoc communication error");
+			localStorage['iDoc-'+r.name] = ' ';
+		});
+	});
 }
 
 function init() {
