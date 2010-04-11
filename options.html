@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 	<title>iDoc</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -12,11 +13,12 @@ div#filesystem, div#preview {
 	border: #d2dbed 1px solid;
 	border-radius: 3px;
 	padding: 10px;
+	bottom: 2%;
+	top: 3em;
 }
 div#filesystem {
-	width: 33%;
-	height: 85%;
 	left: 2%;
+	right: 68%;
 	overflow: auto;
 }
 div#filesystem table {
@@ -26,14 +28,16 @@ div#filesystem table {
 div#filesystem table td.small {
 	width: 10px;
 }
+table#fs {
+	clear: both;
+}
 div#preview {
-	width: 55%;
+	left: 34%;
 	right: 2%;
-	height: 85%;
 }
 div#preview iframe {
-	width: 99%;
-	height: 89%;
+	width: 100%;
+	height: 90%;
 	border: dashed 1px #d2dbed;
 }
 h1 {
@@ -41,14 +45,20 @@ h1 {
 	font-weight: bold;
 	margin-left: 10%;
 	margin-bottom: 10px;
-	font-size: xx-large;
+	font-size: 2em;
 }
 h2 {
+	float: left;
 	font-size: 1.1em;
 	font-weight: bold;
 	font-style: italic;
 	font-family: cursive;
 	margin-left: 30px;
+}
+button {
+	float: right;
+	position: relative;
+	top: 1.7em;
 }
 div.hr {
 	height: 7px;
@@ -265,7 +275,7 @@ function init() {
 	</div>
 	<div id="preview">
 		<h2>Preview</h2>
+		<button onclick="">Send</button>
 		<iframe id="ifpreview"></iframe>
 	</div>
-	</body>
 </html>
