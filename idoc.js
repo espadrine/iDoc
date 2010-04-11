@@ -10,6 +10,7 @@ else if(document.location.protocol == 'file:')
 	name = document.URL.substring(8);
 
 // 1. You have to learn to listen!
+if(chrome.extension)
 chrome.extension.onRequest.addListener(
 	function( request, sender, sendResponse ) {
 		if(request.edit == true) {
@@ -49,7 +50,8 @@ chrome.extension.onRequest.addListener(
 		else if(request.edit == 'draft') {
 			haveSaved = true;
 			sendResponse({ok:true, save:name,
-			 content: document.getElementsByTagName('html')[0].innerHTML});
+			 content: document.getElementsByTagName('html')[0].innerHTML
+			                  .replace(/idoc\.js/,'')}); // avoids infinite loop
 		}
 		else if(request.edit == "do") {
 			if (request.action == "createlink") {
