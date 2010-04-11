@@ -130,7 +130,7 @@ function rmFile(file) {
 		if(folderName == folder)
 			stillSome = true;
 	}
-	if( !stillSome )  // if there is no more file in the folder...
+	if( !stillSome && folder != '' ) // if there is no more file in the folder...
 		hideFile(id-1);  // ... remove the folder in the ui.
 }
 function hideFile(place) {
@@ -220,7 +220,7 @@ function init() {
 	//			'href="javascript:void(0)" onclick="newFile()">New File</a>';
 	var uiFs = document.getElementById('fs');
 	// Show a table of current files.
-	if(localStorage.length > 0) {
+	if(localStorage.length >= 0) {
 		var ls = localStorage;
 		// First show folders.
 		for(var i=0; i<ls.length; i++) {
