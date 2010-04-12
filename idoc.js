@@ -4,9 +4,10 @@
 // You should have received a copy of the GNU General Public License along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 var name = '';
-if(document.location.protocol == 'http:')
+var procol = document.location.protocol;
+if(procol == 'http:')
 	name = document.URL.substring(7);
-else if(document.location.protocol == 'file:')
+else if(procol == 'file:')
 	name = document.URL.substring(8);
 
 // 1. You have to learn to listen!
@@ -49,9 +50,7 @@ chrome.extension.onRequest.addListener(
 		}
 		else if(request.edit == 'draft') {
 			haveSaved = true;
-			sendResponse({ok:true, save:name,
-			 content: document.getElementsByTagName('html')[0].innerHTML
-			                  .replace(/idoc\.js/,'')}); // avoids infinite loop
+			sendResponse({ok:true,save:name,content:document.getElementsByTagName('html')[0].innerHTML.replace(/idoc\.js/,'')}); // avoids infinite loop
 		}
 		else if(request.edit == "do") {
 			if (request.action == "createlink") {
@@ -168,21 +167,15 @@ function insertNodeAtSelection(win, insertNode) {
 // 3. Do you want to lose your edition?
 var haveSaved = true;
 window.onbeforeunload = function(e) {
-	if(document.designMode=='on' && !haveSaved) {
-		var asked = "Don't you want to save your edition on your computer "+
-			"before leaving?";
+	if(document.designMode=='on' && !haveSaved) { //FIXME
 		// save it, just in case :)
-		chrome.extension.sendRequest({save: document.URL.substring(7),
-				content: document.getElementsByTagName('html')[0].innerHTML},
-				function(resp){});
-		e.returnValue = asked;
-		return asked;
+		chrome.extension.sendRequest({save: name,
+				content: document.getElementsByTagName('html')[0].innerHTML.replace(/idoc\.js/,'')},
+				function(r){});
 	}
 }
-
 document.onkeydown = function(e) {
 	if(e.keyCode == 83 && (e.ctrlKey||e.metaKey)) // CTRL/Command+S
 		haveSaved = true;
 	else haveSaved = false;
 }
-
