@@ -146,11 +146,10 @@ function dismisscolorpalette() {
 	colorpalette.style.display = "none";
 }
 
-function newfile() {
-	chrome.tabs.create({url:"./new.html"}, function(tab2) {
+function newFile() {
+	chrome.tabs.create({url:"./new.html",selected:false}, function(tab2) {
 		chrome.tabs.sendRequest(tab2.id, {edit:true,askName:true}, function(r) {
-			if(!r.ok) console.log("iDoc communication error");
-			localStorage['iDoc-'+r.name] = ' ';
+			if(!r.ok) console.log('iDoc communication error.');
 		});
 	});
 }
@@ -185,14 +184,14 @@ function init() {
 			table { width:100%; background-color: #ebeff9; display: none; }
 			table td { text-align: center; }
 		</style>
-		<button id="new" onclick="newfile();" style="width:100%">New</button>
+		<button id="new" onclick="newFile();" style="width:100%">New</button>
 <table id="toolbar1" width="100%">
 <tr>
 <td>
 	<button id="ed" onclick="change(this);"></button>
 </td>
 <td>
-	<button id="new2" onclick="newfile();">New</button>
+	<button id="new2" onclick="newFile();">New</button>
 </td>
 <td>
 <div class="imagebutton" id="cut"><img class="image" src="cut.png" alt="Cut" title="Cut"></div>

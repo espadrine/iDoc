@@ -44,7 +44,7 @@ h1 {
 	font-family: monospace;
 	font-weight: bold;
 	margin-left: 10%;
-	margin-bottom: 10px;
+	margin-top: 10px;
 	font-size: 2em;
 }
 h2 {
@@ -232,8 +232,6 @@ function edit(f) {
 function init() {
 	var folders = [];
 	var inTable = '';
-	//var inTable = '<tr><td colspan=3>\n<a class="folder" '+
-	//			'href="javascript:void(0)" onclick="newFile()">New File</a>';
 	var uiFs = document.getElementById('fs');
 	// Show a table of current files.
 	if(localStorage.length >= 0) {
@@ -281,7 +279,6 @@ function init() {
 	</div>
 	<div id="preview">
 		<h2>Preview</h2>
-		<button onclick="">Send</button>
 		<iframe id="ifpreview"></iframe>
 	</div>
 </html>

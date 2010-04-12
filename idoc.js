@@ -5,13 +5,10 @@
 
 var name = '';
 var procol = document.location.protocol;
-if(procol == 'http:')
-	name = document.URL.substring(7);
-else if(procol == 'file:')
-	name = document.URL.substring(8);
+if     (procol == 'http:') name = document.URL.substring(7);
+else if(procol == 'file:') name = document.URL.substring(8);
 
 // 1. You have to learn to listen!
-if(chrome.extension)
 chrome.extension.onRequest.addListener(
 	function( request, sender, sendResponse ) {
 		if(request.edit == true) {
@@ -100,7 +97,8 @@ chrome.extension.onRequest.addListener(
 		}
 		else
 			sendResponse({});
-	});
+	}
+);
 
 // 2. Wiring things up inside the DOM forest.
 function insertNodeAtSelection(win, insertNode) {
