@@ -37,13 +37,22 @@ chrome.extension.onRequest.addListener(
 			if(document.designMode) {
 				document.designMode = "off";
 				sendResponse({ok:true, save:name,
-				 content: document.getElementsByTagName('html')[0].innerHTML});
+				 content: document.getElementsByTagName('html')[0].innerHTML.replace(/idoc\.js/,'')});
 			}
 			else sendResponse({ok:false});
 		}
 		else if(request.edit == "ask") {
 			if(document.designMode == "on") sendResponse({editing:true});
 			else sendResponse({editing:false});
+		}
+		else if(request.edit == "askName") {
+			var range = document.createRange();
+			range.selectNode(document.body);
+			var content = '';
+			var body = document.body.childNodes;
+			for(var i=0; i<body.length; i++)
+				content += body[i].textContent+'\n';
+			sendResponse({name:name, content:content});
 		}
 		else if(request.edit == 'draft') {
 			haveSaved = true;

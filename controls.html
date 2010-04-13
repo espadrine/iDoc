@@ -105,7 +105,23 @@ function tbclick() {
 	if(!editing)
 		change(document.getElementById('ed'));
 	var act = this.id;
-	if ((act == "forecolor") || (act == "hilitecolor")) {
+	if(act == "mail") { // sending mail.
+		// special info.
+		chrome.tabs.getSelected(null, function(tab) {
+			chrome.tabs.sendRequest(tab.id, {edit:"askName"},
+				function(r) {
+					var subject = r.name;
+					var body = r.content;
+					// mailto
+					var action_url = 'mailto:?';
+					if(subject.length > 0)
+					  action_url += "subject="+encodeURIComponent(subject)+'&';
+					if(body.length > 0)
+						action_url += "body="+encodeURIComponent(body);
+					chrome.tabs.update(tab.id, {url:action_url});
+				})
+		});
+	} else if ((act == "forecolor") || (act == "hilitecolor")) {
 		parent.command = act;
 		buttonElement = document.getElementById(act);
 		var colorpalette = document.getElementById("colorpalette");
@@ -114,8 +130,7 @@ function tbclick() {
 		document.body.style.height = "255px";
 		colorpalette.style.display = "block";
 		colorpalette.style.visibility="visible";
-	}
-	else {
+	} else {
 		chrome.tabs.getSelected(null, function(tab) {
 			chrome.tabs.sendRequest(tab.id, {edit:"do",action:act},
 				function(response) {
@@ -192,6 +207,9 @@ function init() {
 </td>
 <td>
 	<button id="new2" onclick="newFile();">New</button>
+</td>
+<td>
+<div class="imagebutton" id="mail"><img class="image" src="mail.png" alt="Mail" title="Mail"></div>
 </td>
 <td>
 <div class="imagebutton" id="cut"><img class="image" src="cut.png" alt="Cut" title="Cut"></div>
