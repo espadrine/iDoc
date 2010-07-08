@@ -58,6 +58,33 @@ chrome.extension.onRequest.addListener(
 			haveSaved = true;
 			sendResponse({ok:true,save:name,content:document.getElementsByTagName('html')[0].innerHTML.replace(/idoc\.js/,'')}); // avoids infinite loop
 		}
+    else if(request.edit == "css") {
+      var csstext = '';
+      if(!document.getElementById('idocCSS')) {
+        /* create style element */
+        document.body.insertAdjacentHTML('afterbegin',
+            '<style id="idocCSS"></style>');
+      } else {
+        csstext = document.getElementById('idocCSS').innerHTML;
+      }
+      /* show edit box */
+      if(!document.getElementById('idocCSSbox')) {
+        /* create box */
+        document.body.insertAdjacentHTML('beforeend',
+          '<div id="idocCSSbox" style="position:absolute;top:20px;left:20px;text-align:center;background-color:#f3f7fc;border:solid 1px #d2dbed;border-radius:3px;padding:10px;display:block;">'+
+          '<textarea rows=10 style="font-family:monospace;"></textarea><br>'+
+          '<button id="idocCSSdone">done</button></div>');
+      } else {
+        document.getElementById('idocCSSbox').style.display = 'block';
+        document.getElementById('idocCSSbox').firstChild.value=csstext;
+      }
+      document.getElementById('idocCSSdone').addEventListener('click',
+        function() {
+          document.getElementById('idocCSSbox').style.display = 'none';
+          document.getElementById('idocCSS').innerHTML = this.previousSibling.previousSibling.value;
+        },false);
+      sendResponse({});
+    }
 		else if(request.edit == "do") {
 			if (request.action == "createlink") {
 				var szURL = prompt("Enter a URL:", "http://");

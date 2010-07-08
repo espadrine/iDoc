@@ -1,5 +1,6 @@
 <html>
 	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<script>
 	// 1. edit & draft button.
 var editing = false;
@@ -161,6 +162,13 @@ function dismisscolorpalette() {
 	colorpalette.style.display = "none";
 }
 
+/* here be the css button call */
+function cssbut() {
+  chrome.tabs.getSelected(null, function(tab) {
+    chrome.tabs.sendRequest(tab.id, {edit:"css"}, function(r) {});
+  });
+}
+
 function newFile() {
 	chrome.tabs.create({url:"./new.html",selected:false}, function(tab2) {
 		chrome.tabs.sendRequest(tab2.id, {edit:true,askName:true}, function(r) {
@@ -293,6 +301,9 @@ function init() {
 
 <table id="toolbar3" width="100%">
 <tr>
+<td>
+	<button id="css" onclick="cssbut(this);">css</button>
+</td>
 <td>
 <div style="left: 10;" class="imagebutton" id="forecolor"><img class="image" src="forecolor.png" alt="Text Color" title="Text Color"></div>
 </td>
