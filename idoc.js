@@ -70,7 +70,7 @@ chrome.extension.onRequest.addListener(
       /* show edit box */
       if(!document.getElementById('idocCSSbox')) {
         /* create box */
-        document.body.insertAdjacentHTML('beforeend',
+        document.head.insertAdjacentHTML('beforeend',
           '<div id="idocCSSbox" style="position:fixed;top:20px;left:20px;text-align:center;background-color:#f3f7fc;border:solid 1px #d2dbed;border-radius:3px;padding:10px;display:block;">'+
           '<textarea id="idocCSStext" rows=10 style="font-family:monospace;"></textarea><br>'+
           '<button id="idocCSSdone">done</button></div>');
