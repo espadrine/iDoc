@@ -1,165 +1,175 @@
+<!DOCTYPE html>
 <html>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<script>
-	// 1. edit & draft button.
-var editing = false;
-var END_EDIT = "End";
-var BEGIN_EDIT = "Edit";
+  <head>
+    <title></title>
+    <meta charset="utf-8"/>
+    <script>
+    
+// 1. edit & draft button.
+  
+var editor = {};
+editor.editing = false;
+editor.END_EDIT = "End";
+editor.BEGIN_EDIT = "Edit";
+
 function change(obj) {
-	chrome.tabs.getSelected(null, function(tab) {
-		if( editing == false ) // begin editing session.
-			obj.textContent = END_EDIT;
-		else
-			obj.textContent = BEGIN_EDIT;
-		editing = !editing;
-		chrome.tabs.sendRequest(tab.id, {edit:editing}, function(response) {
-			if(!response.ok) console.log("iDoc communication error");
-			if(response.save)
-				localStorage['iDoc-'+response.save] = response.content;
-		});
-	});
+  /* Switch from editing mode to browsing mode and back again. */
+  chrome.tabs.getSelected(null, function(tab) {
+    if (editor.editing == false) {
+      obj.textContent = editor.END_EDIT;
+    } else {
+      obj.textContent = editor.BEGIN_EDIT;
+    }
+    editor.editing = !editor.editing;
+
+    chrome.tabs.sendRequest(tab.id, {edit:editor.editing, name:true},
+      function(response) {
+        if (!response.ok) { console.log("iDoc communication error"); }
+        if (response.save) {
+          /* We save the file on end edit. */
+          localStorage['iDoc-'+response.save] = response.content;
+        }
+      }
+    );
+  });
 }
+
 function draft() {
-	chrome.tabs.getSelected(null, function(tab) {
-		chrome.tabs.sendRequest(tab.id, {edit:'draft'}, function(response) {
-			if(!response.ok) console.log("iDoc communication error");
-			if(response.save)
-				localStorage['iDoc-'+response.save] = response.content;
-		});
-	});
+  /* Make a copy of the current work in draft space. */
+  chrome.tabs.getSelected(null, function(tab) {
+    chrome.tabs.sendRequest(tab.id, {edit:'draft'}, function(response) {
+      if (!response.ok) { console.log("iDoc communication error"); }
+      if (response.save) {
+        localStorage['iDoc-'+response.save] = response.content;
+      }
+    });
+  });
 }
-	
-	// 2. controls.
-var command = "";
+  
+  
+// 2. controls.
+  
+editor.command = "";
 
 function InitToolbarButtons() {
-	var kids = document.getElementsByTagName('div');
-	
-	for (var i=0; i < kids.length; i++) {
-		if (kids[i].className == "imagebutton") {
-			kids[i].onmouseover = tbmouseover;
-			kids[i].onmouseout = tbmouseout;
-			kids[i].onmousedown = tbmousedown;
-			kids[i].onmouseup = tbmouseup;
-			kids[i].onclick = tbclick;
-			kids[i].style.border="solid 1px #ebeff9";
-			kids[i].style.borderRadius="2px";
-		}
-	}
+  var kids = document.getElementsByTagName('div');
+  
+  for (var i=0; i < kids.length; i++) {
+    if (kids[i].className == "imagebutton") {
+      kids[i].onmouseover = tbmouseover;
+      kids[i].onmouseout = tbmouseout;
+      kids[i].onmousedown = tbmousedown;
+      kids[i].onmouseup = tbmouseup;
+      kids[i].onclick = tbclick;
+      kids[i].style.border="solid 1px #ebeff9";
+      kids[i].style.borderRadius="2px";
+    }
+  }
 }
 
-function tbmousedown(e) {
-	var evt = e ? e : window.event; 
-	
-	this.firstChild.style.left = 1;
-	this.firstChild.style.top = 1;
-	this.style.backgroundColor="#d2dbed";
-	if (evt.returnValue) {
-		evt.returnValue = false;
-	} else if (evt.preventDefault) {
-		evt.preventDefault( );
-	} else {
-		return false;
-	}
+function tbmousedown(evt) {
+  this.firstChild.style.left = 1;
+  this.firstChild.style.top = 1;
+  this.style.backgroundColor="#d2dbed";
+  evt.preventDefault( );
 }
 
 function tbmouseup() {
-	this.firstChild.style.left = 1;
-	this.firstChild.style.top = 1;
-	this.style.backgroundColor="#ebeff9";
+  this.firstChild.style.left = 1;
+  this.firstChild.style.top = 1;
+  this.style.backgroundColor="#ebeff9";
 }
 
 function tbmouseout() {
-	this.style.border="solid 1px #ebeff9";
+  this.style.border="solid 1px #ebeff9";
 }
 
 function tbmouseover() {
-	this.style.border="solid 1px #d2dbed";
+  this.style.border="solid 1px #d2dbed";
 }
 
 function getOffsetTop(elm) {
-	var mOffsetTop = elm.offsetTop;
-	var mOffsetParent = elm.offsetParent;
-	
-	while(mOffsetParent){
-		mOffsetTop += mOffsetParent.offsetTop;
-		mOffsetParent = mOffsetParent.offsetParent;
-	}
-	
-	return mOffsetTop;
+  var mOffsetTop = elm.offsetTop;
+  var mOffsetParent = elm.offsetParent;
+  
+  while(mOffsetParent){
+    mOffsetTop += mOffsetParent.offsetTop;
+    mOffsetParent = mOffsetParent.offsetParent;
+  }
+  
+  return mOffsetTop;
 }
 
 function getOffsetLeft(elm) {
-	var mOffsetLeft = elm.offsetLeft;
-	var mOffsetParent = elm.offsetParent;
-	
-	while(mOffsetParent){
-		mOffsetLeft += mOffsetParent.offsetLeft;
-		mOffsetParent = mOffsetParent.offsetParent;
-	}
-	
-	return mOffsetLeft;
+  var mOffsetLeft = elm.offsetLeft;
+  var mOffsetParent = elm.offsetParent;
+  
+  while(mOffsetParent){
+    mOffsetLeft += mOffsetParent.offsetLeft;
+    mOffsetParent = mOffsetParent.offsetParent;
+  }
+  
+  return mOffsetLeft;
 }
 
 function tbclick() {
-	if(!editing)
-		change(document.getElementById('ed'));
-	var act = this.id;
-	if(act == "mail") { // sending mail.
-		// special info.
-		chrome.tabs.getSelected(null, function(tab) {
-			chrome.tabs.sendRequest(tab.id, {edit:"askName"},
-				function(r) {
-					var subject = r.name;
-					var body = r.content;
-					// mailto
-					var action_url = 'mailto:?';
-					if(subject.length > 0)
-					  action_url += "subject="+encodeURIComponent(subject)+'&';
-					if(body.length > 0)
-						action_url += "body="+encodeURIComponent(body);
-					chrome.tabs.update(tab.id, {url:action_url});
-				})
-		});
-	} else if ((act == "forecolor") || (act == "hilitecolor")) {
-		parent.command = act;
-		buttonElement = document.getElementById(act);
-		var colorpalette = document.getElementById("colorpalette");
-		colorpalette.style.left = getOffsetLeft(buttonElement);
-		colorpalette.style.top = getOffsetTop(buttonElement) + buttonElement.offsetHeight;
-		document.body.style.height = "255px";
-		colorpalette.style.display = "block";
-		colorpalette.style.visibility="visible";
-	} else {
-		chrome.tabs.getSelected(null, function(tab) {
-			chrome.tabs.sendRequest(tab.id, {edit:"do",action:act},
-				function(response) {
-					if(!response.ok)console.log("iDoc communication error");
-				});
-		});
-	}
+  if(!editor.editing) { change(document.getElementById('ed')); }
+  var act = this.id;
+  if(act == "mail") { // sending mail.
+    // special info.
+    chrome.tabs.getSelected(null, function(tab) {
+      chrome.tabs.sendRequest(tab.id, {edit:"askName"},
+        function(r) {
+          var subject = r.name;
+          var body = r.content;
+          // mailto
+          var action_url = 'mailto:?';
+          if(subject.length > 0)
+            action_url += "subject="+encodeURIComponent(subject)+'&';
+          if(body.length > 0)
+            action_url += "body="+encodeURIComponent(body);
+          chrome.tabs.update(tab.id, {url:action_url});
+        })
+    });
+  } else if ((act == "forecolor") || (act == "hilitecolor")) {
+    editor.command = act;
+    buttonElement = document.getElementById(act);
+    var colorpalette = document.getElementById("colorpalette");
+    colorpalette.style.left = getOffsetLeft(buttonElement);
+    colorpalette.style.top = getOffsetTop(buttonElement) +
+        buttonElement.offsetHeight;
+    document.body.style.height = "255px";
+    colorpalette.style.display = "block";
+    colorpalette.style.visibility="visible";
+  } else {
+    chrome.tabs.getSelected(null, function(tab) {
+      chrome.tabs.sendRequest(tab.id, {edit:"do",action:act},
+        function(response) {
+          if(!response.ok) { console.log("iDoc communication error"); }
+        });
+    });
+  }
 }
 
 function Select(selectname) {
-	var cursel = document.getElementById(selectname).selectedIndex;
-	/* First one is always a label */
-	if (cursel != 0) {
-		var selected= document.getElementById(selectname).options[cursel].value;
-		chrome.tabs.getSelected(null, function(tab) {
-			chrome.tabs.sendRequest(tab.id, {edit:"do",action:selectname,
-					arg:selected}, function(response) {
-				if(!response.ok) console.log("iDoc communication error");
-				document.getElementById(selectname).selectedIndex = 0;
-			});
-		});
-	}
+  var cursel = document.getElementById(selectname).selectedIndex;
+  /* First one is always a label */
+  if (cursel != 0) {
+    var selected= document.getElementById(selectname).options[cursel].value;
+    chrome.tabs.getSelected(null, function(tab) {
+      chrome.tabs.sendRequest(tab.id, {edit:"do",action:selectname,
+          arg:selected}, function(response) {
+        if(!response.ok) console.log("iDoc communication error");
+        document.getElementById(selectname).selectedIndex = 0;
+      });
+    });
+  }
 }
 
 function dismisscolorpalette() {
-	var colorpalette = document.getElementById("colorpalette");
-	colorpalette.style.visibility = "hidden";
-	colorpalette.style.display = "none";
+  var colorpalette = document.getElementById("colorpalette");
+  colorpalette.style.visibility = "hidden";
+  colorpalette.style.display = "none";
 }
 
 /* here be the css button call */
@@ -170,100 +180,101 @@ function cssbut() {
 }
 
 function newFile() {
-	chrome.tabs.create({url:"./new.html",selected:false}, function(tab2) {
-		chrome.tabs.sendRequest(tab2.id, {edit:true,askName:true}, function(r) {
-			if(!r.ok) console.log('iDoc communication error.');
-		});
-	});
+  chrome.tabs.create({url:"./new.html",selected:false}, function(tab2) {
+    chrome.tabs.sendRequest(tab2.id, {edit:true}, function(r) {
+      if(!r.ok) console.log('iDoc communication error.');
+    });
+  });
 }
 
 function init() {
-	chrome.tabs.getSelected(null, function(tab) {
-		chrome.tabs.sendRequest(tab.id, {edit:"ask"}, function(response) {
-			editing = response.editing;
-			document.getElementById('ed').textContent = editing?
-					END_EDIT: BEGIN_EDIT; // edit on.
-			document.getElementById('new').style.display = 'none';
-			var tables = document.getElementsByTagName('table');
-			for(var i=0; i<tables.length; i++)
-				tables[i].style.display = "block";
-		});
-	});
-	chrome.extension.onRequest.addListener(
-		function(request, sender, sendResponse) {
-			if(request.save) // It comes from the content script.
-				localStorage['iDoc-'+request.save] = request.content;
-			sendResponse({});
-		}
-	);
-	InitToolbarButtons();
-	document.addEventListener("mousedown", dismisscolorpalette, true);
+  chrome.tabs.getSelected(null, function(tab) {
+    chrome.tabs.sendRequest(tab.id, {edit:"ask"}, function(response) {
+      editor.editing = response.editing;
+      document.getElementById('ed').textContent = editor.editing?
+          editor.END_EDIT: editor.BEGIN_EDIT; // edit on.
+      document.getElementById('new').style.display = 'none';
+      var tables = document.getElementsByTagName('table');
+      for(var i=0; i<tables.length; i++)
+        tables[i].style.display = "block";
+    });
+  });
+  chrome.extension.onRequest.addListener(
+    function(request, sender, sendResponse) {
+      if(request.save) // It comes from the content script.
+        localStorage['iDoc-'+request.save] = request.content;
+      sendResponse({});
+    }
+  );
+  InitToolbarButtons();
+  document.addEventListener("mousedown", dismisscolorpalette, true);
 }
-		</script>
-	</head>
-	<body onload="init();">
-		<style>
-			body { width: 400px; margin:0px; padding:0px; }
-			table { width:100%; background-color: #ebeff9; display: none; }
-			table td { text-align: center; }
-		</style>
-		<button id="new" onclick="newFile();" style="width:100%">New</button>
+    </script>
+  </head>
+
+  <body onload="init();">
+    <style>
+      body { width: 400px; margin:0px; padding:0px; }
+      table { width:100%; background-color: #ebeff9; display: none; }
+      table td { text-align: center; }
+    </style>
+    <button id="new" onclick="newFile();" style="width:100%">New</button>
+
 <table id="toolbar1" width="100%">
-<tr>
-<td>
-	<button id="ed" onclick="change(this);"></button>
-</td>
-<td>
-	<button id="new2" onclick="newFile();">New</button>
-</td>
-<td>
-<div class="imagebutton" id="mail"><img class="image" src="mail.png" alt="Mail" title="Mail"></div>
-</td>
-<td>
-<div class="imagebutton" id="cut"><img class="image" src="cut.png" alt="Cut" title="Cut"></div>
-</td>
-<td>
-<div class="imagebutton" id="copy"><img class="image" src="copy.png" alt="Copy" title="Copy"></div>
-</td>
-<td>
-<div class="imagebutton" id="paste"><img class="image" src="paste.png" alt="Paste" title="Paste"></div>
-</td>
-<td>
-<div class="imagebutton" id="undo"><img class="image" src="undo.png" alt="Undo" title="Undo"></div>
-</td>
-<td>
-<div class="imagebutton" id="redo"><img class="image" src="redo.png" alt="Redo" title="Redo"></div>
-</td>
-<td>
-<div style="left: 10;" class="imagebutton" id="createlink"><img class="image" src="link.png" alt="Insert Link" title="Insert Link"></div>
-</td>
-<td>
-<div style="left: 10;" class="imagebutton" id="insertimage"><img class="image" src="image.png" alt="Insert Image" title="Insert Image"></div>
-</td>
-<td>
-<div style="left: 10;" class="imagebutton" id="createtable"><img class="image" src="table.png" alt="Insert Table" title="Insert Table"></div>
-</td>
-</tr>
+  <tr>
+    <td>
+      <button id="ed" onclick="change(this);"></button>
+    </td>
+    <td>
+      <button id="new2" onclick="newFile();">New</button>
+    </td>
+    <td>
+      <div class="imagebutton" id="mail"><img class="image" src="mail.png" alt="Mail" title="Mail"></div>
+    </td>
+    <td>
+      <div class="imagebutton" id="cut"><img class="image" src="cut.png" alt="Cut" title="Cut"></div>
+    </td>
+    <td>
+      <div class="imagebutton" id="copy"><img class="image" src="copy.png" alt="Copy" title="Copy"></div>
+    </td>
+    <td>
+      <div class="imagebutton" id="paste"><img class="image" src="paste.png" alt="Paste" title="Paste"></div>
+    </td>
+    <td>
+      <div class="imagebutton" id="undo"><img class="image" src="undo.png" alt="Undo" title="Undo"></div>
+    </td>
+    <td>
+      <div class="imagebutton" id="redo"><img class="image" src="redo.png" alt="Redo" title="Redo"></div>
+    </td>
+    <td>
+      <div style="left: 10;" class="imagebutton" id="createlink"><img class="image" src="link.png" alt="Insert Link" title="Insert Link"></div>
+    </td>
+    <td>
+      <div style="left: 10;" class="imagebutton" id="insertimage"><img class="image" src="image.png" alt="Insert Image" title="Insert Image"></div>
+    </td>
+    <td>
+      <div style="left: 10;" class="imagebutton" id="createtable"><img class="image" src="table.png" alt="Insert Table" title="Insert Table"></div>
+    </td>
+  </tr>
 </table>
 
 <table id="toolbar2" width="100%">
-<tr>
-<td>
-	<button id="draft" onclick="draft();">Draft</button>
-</td>
-<td>
-<select id="formatblock" onchange="Select(this.id);">
-  <option value="<p>">Normal</option>
-  <option value="<p>">Paragraph</option>
-  <option value="<h1>">Heading 1</option>
-  <option value="<h2>">Heading 2</option>
-  <option value="<h3>">Heading 3</option>
-  <option value="<h4>">Heading 4</option>
-  <option value="<h5>">Heading 5</option>
-  <option value="<h6>">Heading 6</option>
-  <option value="<address>">Address<ADDR></option>
-  <option value="<pre>">Formatted</option>
-
+  <tr>
+    <td>
+      <button id="draft" onclick="draft();">Draft</button>
+    </td>
+    <td>
+      <select id="formatblock" onchange="Select(this.id);">
+        <option value="<p>">Normal</option>
+        <option value="<p>">Paragraph</option>
+        <option value="<h1>">Heading 1</option>
+          <option value="<h2>">Heading 2</option>
+            <option value="<h3>">Heading 3</option>
+              <option value="<h4>">Heading 4</option>
+                <option value="<h5>">Heading 5</option>
+                  <option value="<h6>">Heading 6</option>
+                    <option value="<address>">Address</option>
+                      <option value="<pre>">Formatted</option>
 </select>
 </td>
 <td>
@@ -302,7 +313,7 @@ function init() {
 <table id="toolbar3" width="100%">
 <tr>
 <td>
-	<button id="css" onclick="cssbut(this);">css</button>
+  <button id="css" onclick="cssbut(this);">css</button>
 </td>
 <td>
 <div style="left: 10;" class="imagebutton" id="forecolor"><img class="image" src="forecolor.png" alt="Text Color" title="Text Color"></div>
@@ -337,5 +348,5 @@ function init() {
 </tr>
 </table>
 <iframe width="250" height="170" id="colorpalette" src="colors.html" style="visibility:hidden; display: none; position: absolute;"></iframe>
-	</body>
+  </body>
 </html>
