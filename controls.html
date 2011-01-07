@@ -192,11 +192,11 @@ function init() {
     chrome.tabs.sendRequest(tab.id, {edit:"ask"}, function(response) {
       editor.editing = response.editing;
       document.getElementById('ed').textContent = editor.editing?
-          editor.END_EDIT: editor.BEGIN_EDIT; // edit on.
+          editor.END_EDIT: editor.BEGIN_EDIT; // Edit on.
       document.getElementById('new').style.display = 'none';
       var tables = document.getElementsByTagName('table');
       for(var i=0; i<tables.length; i++)
-        tables[i].style.display = "block";
+        tables[i].style.display = "table";
     });
   });
   chrome.extension.onRequest.addListener(
@@ -220,7 +220,7 @@ function init() {
     </style>
     <button id="new" onclick="newFile();" style="width:100%">New</button>
 
-<table id="toolbar1" width="100%">
+<table id="toolbar1">
   <tr>
     <td>
       <button id="ed" onclick="change(this);"></button>
@@ -258,7 +258,7 @@ function init() {
   </tr>
 </table>
 
-<table id="toolbar2" width="100%">
+<table id="toolbar2">
   <tr>
     <td>
       <button id="draft" onclick="draft();">Draft</button>
@@ -310,7 +310,7 @@ function init() {
 </tr>
 </table>
 
-<table id="toolbar3" width="100%">
+<table id="toolbar3">
 <tr>
 <td>
   <button id="css" onclick="cssbut(this);">css</button>
