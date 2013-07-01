@@ -30,6 +30,7 @@ function showFile(f, place) {
   // update ui.
   fRow.id = 'file'+f;
   fRow.innerHTML = fileInRow(f);
+  hookEvents();
 }
 function showFolder(f, place) {
   var fsTable = document.getElementById("fs");
@@ -37,6 +38,7 @@ function showFolder(f, place) {
   // update ui.
   fRow.id = 'fold'+f;
   fRow.innerHTML = folderInRow(f);
+  hookEvents();
 }
 function rmFile(file) {
   var ls = localStorage;
@@ -87,7 +89,12 @@ function openFolder(name, caller) {
     }
   }
   caller.parentNode.previousSibling.textContent = 'v';
-  caller.setAttribute('onclick', "closeFolder('"+name+"', this)");
+  caller.classList.remove('openFolder');
+  caller.classList.add('closeFolder');
+  hookEvents();
+  // TODO: remove
+  //caller.addEventListener('click', function() { closeFolder(name, caller); });
+  //caller.setAttribute('onclick', "closeFolder('"+name+"', this)");
 }
 function closeFolder(name, caller) {
   var table = document.getElementById('fs');
@@ -103,33 +110,87 @@ function closeFolder(name, caller) {
     else break;
   }
   caller.parentNode.previousSibling.textContent = '>';
-  caller.setAttribute('onclick', "openFolder('"+name+"', this)");
+  caller.classList.remove('closeFolder');
+  caller.classList.add('openFolder');
+  hookEvents();
+  // TODO: remove
+  //caller.addEventListener('click', function() { openFolder(name, caller); });
+  //caller.setAttribute('onclick', "openFolder('"+name+"', this)");
 }
 
+var listeners = [];
+// register the listeners
+function reglist(f) {
+  listeners.push(f);
+  return f;
+}
+function rmListeners(dom, event, listeners) {
+  for (var i = 0; i < listeners.length; i++)
+    dom.removeEventListener(event, listeners[i]);
+}
+// Make a small closure.
+function mkListener(f, filename, dom) {
+  return function() { f(filename, dom); };
+}
+function hookEvents() {
+  var oldListeners = listeners.slice(0);
+  listeners = [];
+  console.log('old listeners', oldListeners.length);
+  // hook buttons
+  var doms = document.getElementsByClassName('removeFile');
+  var filename;
+  for (var i = 0; i < doms.length; i++) {   // remove file
+    filename = doms[i].dataset.filename;
+    rmListeners(doms[i], 'click', oldListeners);
+    doms[i].addEventListener('click', reglist(mkListener(rmFile, filename)));
+  }
+  doms = document.getElementsByClassName('openFile');
+  for (var i = 0; i < doms.length; i++) {   // edit file
+    filename = doms[i].dataset.filename;
+    rmListeners(doms[i], 'click', oldListeners);
+    rmListeners(doms[i], 'mouseover', oldListeners);
+    doms[i].addEventListener('click', reglist(mkListener(edit, filename)));
+    doms[i].addEventListener('mouseover',
+        reglist(mkListener(preview, filename)));
+  }
+  doms = document.getElementsByClassName('openFolder');
+  for (var i = 0; i < doms.length; i++) {   // open folder
+    filename = doms[i].dataset.filename;
+    rmListeners(doms[i], 'click', oldListeners);
+    doms[i].addEventListener('click',
+        reglist(mkListener(openFolder, filename, doms[i])));
+  }
+  doms = document.getElementsByClassName('closeFolder');
+  for (var i = 0; i < doms.length; i++) {   // close folder
+    filename = doms[i].dataset.filename;
+    rmListeners(doms[i], 'click', oldListeners);
+    doms[i].addEventListener('click',
+        reglist(mkListener(closeFolder, filename, doms[i])));
+  }
+}
 function fileRow(fileName) {
   return '<tr id="file'+fileName+'">'+fileInRow(fileName);
 }
 function fileInRow(fileName) {
-  return '<td><td class="small"><a href="javascript:void(0)" '
-      +'class="folder" onclick="rmFile(\''+fileName+'\')">x</a>'
-      +'<td><a href="javascript:void(0)" class="name" '
-      +'onclick="edit(\''+fileName+'\')" '
-      +'onmouseover="preview(\''+fileName+'\')">'+fileName+'</a>';
+  return '<td><td class="small"><a href="#" '
+      +'data-filename="'+fileName+'" class="folder removeFile">x</a>'
+      +'<td><a href="#" '
+      +'data-filename="'+fileName+'" class="name openFile">'
+      +fileName+'</a>';
 }
 function folderRow(folderName) {
   return '<tr id="fold'+folderName+'">'+folderInRow(folderName);
 }
 function folderInRow(folderName) {
-  return '<td class="small">&gt;'+
-      '<td colspan=2><a href="javascript:void(0)" class="folder" '+
-      'onclick="openFolder(\''+folderName+'\', this)">'+
-      folderName+'</a>';
+  return '<td class="small">&gt;'
+      +'<td colspan=2><a href="#" class="folder openFolder" '
+      +'data-filename="'+folderName+'">'+folderName+'</a>';
 }
 
 
 function edit(f) {
   chrome.tabs.create({url:"./new.html"}, function(tab2) {
-    chrome.tabs.sendRequest(tab2.id, {edit:true,
+    chrome.tabs.sendMessage(tab2.id, {edit:true,
                 replace:localStorage['iDoc-'+f],
                 name:f}, function(r) {
       if(!r.ok) console.log("iDoc communication error");
@@ -178,6 +239,7 @@ function init() {
     }
   }
   uiFs.innerHTML = inTable;
+  hookEvents();
 }
 
 
